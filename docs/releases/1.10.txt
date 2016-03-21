@@ -251,6 +251,10 @@ File Storage
   timezone-aware ``datetime`` if :setting:`USE_TZ` is ``True`` and a naive
   ``datetime`` in the local timezone otherwise.
 
+* The new  :meth:`Storage.generate_filename()
+  <django.core.files.storage.Storage.generate_filename>` method makes it easier
+  to implement custom storages that don't rely on the OS path behavior
+  previously handled by :class:`~django.db.models.FileField`.
 
 File Uploads
 ~~~~~~~~~~~~
@@ -789,6 +793,20 @@ Miscellaneous
 * The ``Model._deferred`` attribute is removed as dynamic model classes when
   using ``QuerySet.defer()`` and ``only()`` is removed.
 
+* :meth:`~django.core.files.storage.Storage.save` no longer replaces '\\' with
+  '/'. This behavior is moved to
+  :class:`~django.core.files.storage.FileSystemStorage` since this is a storage
+  specific implementation detail. Any Windows user with a custom storage
+  implementation that previously relied on this behavior will need to implement
+  it in the custom storage's ``save()`` method.
+
+* Private :class:`~django.db.models.FileField` methods ``get_directory_name()``
+  and ``get_filename()`` are no longer called (and are now deprecated) which is
+  a backwards incompatible change for users overriding those methods on custom
+  fields. To adopt same behavior, override ``FileField.generate_filename()`` or
+  :meth:`~django.core.files.storage.Storage.generate_filename` instead. It
+  might be enough to use :attr:`~django.db.models.FileField.upload_to` too.
+
 .. _deprecated-features-1.10:
 
 Features deprecated in 1.10
@@ -986,6 +1004,11 @@ Miscellaneous
   ``Field.contribute_to_class()`` and ``virtual`` in
   ``Model._meta.add_field()`` are deprecated in favor of ``private_only``
   and ``private``, respectively.
+
+* Private methods from :class:`~django.db.models.FileField` get_directory_name and
+  get_filename are now deprecated in favor to delegate this work to the underlying
+  storage class although they were never part of the public and
+  :meth:`~django.core.files.storage.Storage.generate_filename` is now recommended.
 
 * The ``javascript_catalog()`` and ``json_catalog()`` views are deprecated in
   favor of class-based views :class:`~django.views.i18n.JavaScriptCatalog`
