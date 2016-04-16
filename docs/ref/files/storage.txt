@@ -168,11 +168,13 @@ The ``Storage`` class
 
         .. versionadded:: 1.10
 
-        Creates the final file name or path to be passed to the save method,
-        applying any defined upload_to of the model field and performing file
-        name validation.
-        By default uses the underlying os path operations, but should be overridden
-        to match any other file path manipulation requirement or custom code.
+        Return a filename to be passed to the :meth:`save` method. Applies
+        :attr:`~django.db.models.FileField.upload_to`, if defined on the model
+        field, and performs filename validation by calling
+        :attr:`get_valid_name()`.
+
+        Uses :mod:`os.path` operations and may be overridden to fulfill other
+        file path manipulation requirements.
 
     .. method:: listdir(path)
 

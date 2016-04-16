@@ -312,7 +312,7 @@ class FileField(Field):
         return os.path.normpath(self.storage.get_valid_name(os.path.basename(filename)))
 
     def generate_filename(self, instance, filename):
-        # Delegate file name creation to the underlying storage backend
+        # Delegate filename creation to the underlying storage backend.
         return self.storage.generate_filename(filename, instance, self.upload_to)
 
     def save_form_data(self, instance, data):
