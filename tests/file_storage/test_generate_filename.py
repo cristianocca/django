@@ -1,4 +1,3 @@
-import datetime
 import os
 import warnings
 
@@ -6,7 +5,6 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import Storage
 from django.db.models import FileField
 from django.test import SimpleTestCase
-from django.utils.encoding import force_str, force_text
 
 
 class AWSS3Storage(Storage):
@@ -17,9 +15,11 @@ class AWSS3Storage(Storage):
     """
     prefix = 'mys3folder/'
 
-    # This one is important to test that Storage.save() doesn't replace '\' with
-    # '/' (rather FileSystemStorage.save() does).
     def _save(self, name, content):
+        """
+        This method is important to test that Storage.save() doesn't replace
+        '\' with '/' (rather FileSystemStorage.save() does).
+        """
         return name
 
     def get_valid_name(self, name):
@@ -28,19 +28,12 @@ class AWSS3Storage(Storage):
     def get_available_name(self, name, max_length=None):
         return name
 
-    def generate_filename(self, filename, instance, upload_to):
+    def generate_filename(self, filename, instance):
         """
         This is the method that's important to override when using S3 so that
         os.path() isn't called, which would break S3 keys.
         """
-        if callable(upload_to):
-            return self.prefix + self.get_valid_name(upload_to(instance, filename))
-        else:
-            return (
-                self.prefix +
-                force_text(datetime.datetime.now().strftime(force_str(upload_to))) +
-                self.get_valid_name(filename)
-            )
+        return self.prefix + self.get_valid_name(filename)
 
 
 class GenerateFilenameStorageTests(SimpleTestCase):
@@ -91,8 +84,8 @@ class GenerateFilenameStorageTests(SimpleTestCase):
     def test_filefield_awss3_storage(self):
         """
         Simulate a FileField with an S3 storage which uses keys rather than
-        folders and names. The key shouldn't break due to os.path() calls in
-        FileField or Storage.
+        folders and names. FileField and Storage shouldn't have any os.path()
+        calls that break the key.
         """
         storage = AWSS3Storage()
         folder = 'not/a/folder/'
@@ -100,13 +93,14 @@ class GenerateFilenameStorageTests(SimpleTestCase):
         f = FileField(upload_to=folder, storage=storage)
         key = 'my-file-key\\with odd characters'
         data = ContentFile('test')
+        expected_key = AWSS3Storage.prefix + folder + key
 
         # Simulate call to f.save()
-        resultKey = f.generate_filename(None, key)
-        self.assertEqual(resultKey, AWSS3Storage.prefix + folder + key)
+        result_key = f.generate_filename(None, key)
+        self.assertEqual(result_key, expected_key)
 
-        resultKey = storage.save(resultKey, data)
-        self.assertEqual(resultKey, AWSS3Storage.prefix + folder + key)
+        result_key = storage.save(result_key, data)
+        self.assertEqual(result_key, expected_key)
 
         # Repeat test with a callable.
         def upload_to(instance, filename):
@@ -116,8 +110,8 @@ class GenerateFilenameStorageTests(SimpleTestCase):
         f = FileField(upload_to=upload_to, storage=storage)
 
         # Simulate call to f.save()
-        resultKey = f.generate_filename(None, key)
-        self.assertEqual(resultKey, AWSS3Storage.prefix + folder + key)
+        result_key = f.generate_filename(None, key)
+        self.assertEqual(result_key, expected_key)
 
-        resultKey = storage.save(resultKey, data)
-        self.assertEqual(resultKey, AWSS3Storage.prefix + folder + key)
+        result_key = storage.save(result_key, data)
+        self.assertEqual(result_key, expected_key)

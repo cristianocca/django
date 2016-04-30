@@ -164,14 +164,15 @@ The ``Storage`` class
         Returns a filename based on the ``name`` parameter that's suitable
         for use on the target storage system.
 
-    .. method:: generate_filename(filename, instance, upload_to)
+    .. method:: generate_filename(filename, instance)
 
         .. versionadded:: 1.10
 
-        Return a filename to be passed to the :meth:`save` method. Applies
-        :attr:`~django.db.models.FileField.upload_to`, if defined on the model
-        field, and performs filename validation by calling
-        :attr:`get_valid_name()`.
+        Performs filename validation by calling :attr:`get_valid_name()` and
+        returns a filename to be passed to the :meth:`save` method.
+
+        ``filename`` may include a path as returned by
+        :attr:`FileField.upload_to <django.db.models.FileField.upload_to>`.
 
         Uses :mod:`os.path` operations and may be overridden to fulfill other
         file path manipulation requirements.

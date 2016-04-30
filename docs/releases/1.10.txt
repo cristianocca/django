@@ -793,9 +793,7 @@ Miscellaneous
 * The ``Model._deferred`` attribute is removed as dynamic model classes when
   using ``QuerySet.defer()`` and ``only()`` is removed.
 
-* :meth:`~django.core.files.storage.Storage.save` no longer replaces '\\' with
-  '/'. This behavior is moved to
-  :meth:`Storage.save() <django.core.files.storage.Storage.save>` no longer
+* :meth:`Storage.save() <django.core.files.storage.Storage.save>` no longer
   replaces ``'\'`` with ``'/'``. This behavior is moved to
   :class:`~django.core.files.storage.FileSystemStorage` since this is a storage
   specific implementation detail. Any Windows user with a custom storage
@@ -1020,8 +1018,8 @@ Miscellaneous
   through a deprecation period.
 
 * Private ``FileField`` methods ``get_directory_name()`` and ``get_filename()``
-  are deprecated in favor of performing this work in the underlying storage
-  class (:meth:`Storage.generate_filename()
+  are deprecated in favor of performing this work in
+  :meth:`Storage.generate_filename()
   <django.core.files.storage.Storage.generate_filename>`).
 
 .. _removed-features-1.10:

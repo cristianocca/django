@@ -1,5 +1,6 @@
 import datetime
 import os
+import posixpath
 import warnings
 
 from django import forms
@@ -312,8 +313,17 @@ class FileField(Field):
         return os.path.normpath(self.storage.get_valid_name(os.path.basename(filename)))
 
     def generate_filename(self, instance, filename):
-        # Delegate filename creation to the underlying storage backend.
-        return self.storage.generate_filename(filename, instance, self.upload_to)
+        """
+        Apply (if callable) or prepend (if a string) upload_to to the filename,
+        then delegate further processing of the name to the storage backend.
+        All file paths are expected to be Unix style (with forward slashes).
+        """
+        if callable(self.upload_to):
+            filename = self.upload_to(instance, filename)
+        else:
+            dirname = force_text(datetime.datetime.now().strftime(force_str(self.upload_to)))
+            filename = posixpath.join(dirname, filename)
+        return self.storage.generate_filename(filename, instance)
 
     def save_form_data(self, instance, data):
         # Important: None means "no change", other false value means "clear"
